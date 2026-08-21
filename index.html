@@ -2,38 +2,48 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<title>年間パス 発行</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>年間パス 発行（Issueページ）</title>
+<style>
+  body { font-family: sans-serif; padding:20px; max-width:520px; margin:auto; }
+  input { padding:10px; width:100%; font-size:16px; box-sizing:border-box; }
+  button { margin-top:15px; padding:12px 20px; font-size:16px; background:#4CAF50; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+  #msg { margin-top:16px; color:#c00; }
+  .hint { margin-top:8px; color:#666; font-size:13px; }
+</style>
 </head>
 <body>
-<div style="padding:20px; font-family:sans-serif;">
-  <h2>年間パス 会員証</h2>
 
-  <input id="tel" type="text" placeholder="電話番号（ハイフンなし）"
-    style="padding:10px; width:100%; font-size:16px;">
+<h3>年間パス 会員証発行</h3>
 
-  <button onclick="issue()"
-    style="margin-top:15px; padding:12px 20px; font-size:16px;
-    background:#4CAF50; color:white; border:none; border-radius:6px;">
-    会員証を発行する
-  </button>
-
-  <p id="msg" style="margin-top:20px; color:red;"></p>
-</div>
+<input id="tel" type="text" placeholder="電話番号（ハイフンなし）" autocomplete="tel" inputmode="numeric">
+<button id="issueBtn">会員証を発行する</button>
+<p id="msg"></p>
+<p class="hint">※電話番号はハイフン無しの半角数字で入力してください。</p>
 
 <script>
+document.getElementById("issueBtn").addEventListener("click", issue);
+
 async function issue() {
-  document.getElementById("msg").innerText = "";
-  const telRaw = document.getElementById("tel").value.trim();
-  if (!telRaw) {
-    document.getElementById("msg").innerText = "電話番号を入力してください。";
+  const msgEl = document.getElementById("msg");
+  msgEl.innerText = "";
+
+  const telRaw = document.getElementById("tel").value || "";
+  const telTrim = telRaw.trim();
+
+  if (!telTrim) {
+    msgEl.innerText = "電話番号を入力してください。";
     return;
   }
 
-  // 電話番号を安全にエンコード
-  const tel = encodeURIComponent(telRaw);
+  // 電話番号を数字だけに正規化してエンコード（ハイフンや空白が入っても大丈夫）
+  const telNormalized = telTrim.replace(/\D/g, "");
+  const telParam = encodeURIComponent(telNormalized);
 
-  // Apps Script の URL を必ずここで定義する（自分のデプロイURLに置き換えてください）
-  const scriptUrl = "https://script.google.com/macros/s/AKfycbwRtJVxyxg8g1-_1wwE9NLOa4DvwUklrjaXd2uwReGd3Y_c4vVIknIZwyq3VYO_mI91/exec?tel=" + tel;
+  // --- あなたの Apps Script デプロイ URL（末尾に ?tel= を付けずに） ---
+  const DEPLOY_BASE = "https://script.google.com/macros/s/AKfycbwRtJVxyxg8g1-_1wwE9NLOa4DvwUklrjaXd2uwReGd3Y_c4vVIknIZwyq3VYO_mI91/exec";
+  const scriptUrl = DEPLOY_BASE + "?tel=" + telParam;
+  // -----------------------------------------------------------------------
 
   try {
     console.log("Fetching:", scriptUrl);
@@ -41,26 +51,33 @@ async function issue() {
     if (!res.ok) {
       throw new Error("サーバーエラー: " + res.status);
     }
+
     const data = await res.json();
     console.log("Apps Script response:", data);
 
+    // Apps Script が {found:true, id:..., exp:...} を返す想定
     if (!data || !data.found) {
-      document.getElementById("msg").innerText = "該当する購入情報がありません。";
+      msgEl.innerText = "該当する購入情報がありません。";
       return;
     }
 
+    // id と exp を安全にエンコードして遷移
     const id = encodeURIComponent(data.id || "");
     const exp = encodeURIComponent(data.exp || "");
-    console.log("Redirecting to card with id, exp:", id, exp);
 
-    window.location.href =
-      "https://ogafarm.github.io/ogafarm-pass/card.html?id=" + id + "&exp=" + exp;
+    // GitHub Pages の公開 URL に遷移（必ず github.io を使う）
+    const cardUrl = "https://ogafarm.github.io/ogafarm-pass/card.html?id=" + id + "&exp=" + exp;
+    console.log("Redirecting to:", cardUrl);
+
+    // 同一タブで遷移
+    window.location.href = cardUrl;
 
   } catch (err) {
     console.error(err);
-    document.getElementById("msg").innerText = "通信エラーが発生しました。コンソールを確認してください。";
+    msgEl.innerText = "通信エラーが発生しました。コンソールを確認してください。";
   }
 }
 </script>
+
 </body>
 </html>
