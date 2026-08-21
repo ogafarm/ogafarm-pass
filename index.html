@@ -18,8 +18,10 @@ async function issue() {
  const telParam = encodeURIComponent(tel);
 const url = "https://script.google.com/macros/s/AKfycbwRtJVxyxg8g1-_1wwE9NLOa4DvwUklrjaXd2uwReGd3Y_c4vVIknIZwyq3VYO_mI91/exec?tel=" + telParam;
 
-  const res = await fetch(url);
-  const data = await res.json();
+const res = await fetch(scriptUrl, { cache: "no-store" });
+const data = await res.json();
+console.log("Apps Script response:", data);
+
 
   if (!data.found) {
     document.getElementById("msg").innerText = "該当する購入情報がありません。";
