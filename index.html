@@ -15,14 +15,8 @@
 
 <script>
 async function issue() {
-  const tel = document.getElementById("tel").value.trim();
-  if (!tel) {
-    document.getElementById("msg").innerText = "電話番号を入力してください。";
-    return;
-  }
-
-const url = "https://script.google.com/macros/s/AKfycbwRtJVxyxg8g1-_1wwE9NLOa4DvwUklrjaXd2uwReGd3Y_c4vVIknIZwyq3VYO_mI91/exec?tel=" + tel;
-
+ const telParam = encodeURIComponent(tel);
+const url = "https://script.google.com/macros/s/AKfycbwRtJVxyxg8g1-_1wwE9NLOa4DvwUklrjaXd2uwReGd3Y_c4vVIknIZwyq3VYO_mI91/exec?tel=" + telParam;
 
   const res = await fetch(url);
   const data = await res.json();
@@ -33,9 +27,16 @@ const url = "https://script.google.com/macros/s/AKfycbwRtJVxyxg8g1-_1wwE9NLOa4Dv
   }
 
   // 会員証ページへ遷移
-  window.location.href =
-  "https://github.com/ogafarm/ogafarm-pass/card.html?id=" +
-  data.id + "&exp=" + data.exp;
+ // 会員証ページへ遷移（修正版）
+const id = encodeURIComponent(data.id || "");
+const exp = encodeURIComponent(data.exp || "");
+
+console.log("Apps Script response:", data);
+console.log("Redirecting to card with id, exp:", id, exp);
+
+window.location.href =
+  "https://ogafarm.github.io/ogafarm-pass/card.html?id=" + id + "&exp=" + exp;
+
 
 
 }
