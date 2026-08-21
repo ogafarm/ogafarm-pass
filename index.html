@@ -1,0 +1,40 @@
+<div style="padding:20px; font-family:sans-serif;">
+  <h2>年間パス 会員証</h2>
+
+  <input id="tel" type="text" placeholder="電話番号（ハイフンなし）"
+    style="padding:10px; width:100%; font-size:16px;">
+
+  <button onclick="issue()"
+    style="margin-top:15px; padding:12px 20px; font-size:16px;
+    background:#4CAF50; color:white; border:none; border-radius:6px;">
+    会員証を発行する
+  </button>
+
+  <p id="msg" style="margin-top:20px; color:red;"></p>
+</div>
+
+<script>
+async function issue() {
+  const tel = document.getElementById("tel").value.trim();
+  if (!tel) {
+    document.getElementById("msg").innerText = "電話番号を入力してください。";
+    return;
+  }
+
+const url = "https://script.google.com/macros/s/AKfycbxF6--qMPjeYf8m7LCRda30KKisjJRvfkYWPid7IuwAGtlqriCFuFnKgGJL175Ir-nH/exec?tel=" + tel;
+
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  if (!data.found) {
+    document.getElementById("msg").innerText = "該当する購入情報がありません。";
+    return;
+  }
+
+  // 会員証ページへ遷移
+  window.location.href =
+    "https://sites.google.com/view/ogafarm-pass/card?id=" +
+    data.id + "&exp=" + data.exp;
+}
+</script>
