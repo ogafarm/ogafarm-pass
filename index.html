@@ -1,3 +1,10 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>年間パス 発行</title>
+</head>
+<body>
 <div style="padding:20px; font-family:sans-serif;">
   <h2>年間パス 会員証</h2>
 
@@ -15,31 +22,45 @@
 
 <script>
 async function issue() {
- const telParam = encodeURIComponent(tel);
-const url = "https://script.google.com/macros/s/AKfycbwRtJVxyxg8g1-_1wwE9NLOa4DvwUklrjaXd2uwReGd3Y_c4vVIknIZwyq3VYO_mI91/exec?tel=" + telParam;
-
-const res = await fetch(scriptUrl, { cache: "no-store" });
-const data = await res.json();
-console.log("Apps Script response:", data);
-
-
-  if (!data.found) {
-    document.getElementById("msg").innerText = "該当する購入情報がありません。";
+  document.getElementById("msg").innerText = "";
+  const telRaw = document.getElementById("tel").value.trim();
+  if (!telRaw) {
+    document.getElementById("msg").innerText = "電話番号を入力してください。";
     return;
   }
 
-  // 会員証ページへ遷移
- // 会員証ページへ遷移（修正版）
-const id = encodeURIComponent(data.id || "");
-const exp = encodeURIComponent(data.exp || "");
+  // 電話番号を安全にエンコード
+  const tel = encodeURIComponent(telRaw);
 
-console.log("Apps Script response:", data);
-console.log("Redirecting to card with id, exp:", id, exp);
+  // Apps Script の URL を必ずここで定義する（自分のデプロイURLに置き換えてください）
+  const scriptUrl = "https://script.google.com/macros/s/AKfycbwRtJVxyxg8g1-_1wwE9NLOa4DvwUklrjaXd2uwReGd3Y_c4vVIknIZwyq3VYO_mI91/exec?tel=" + tel;
 
-window.location.href =
-  "https://ogafarm.github.io/ogafarm-pass/card.html?id=" + id + "&exp=" + exp;
+  try {
+    console.log("Fetching:", scriptUrl);
+    const res = await fetch(scriptUrl, { cache: "no-store" });
+    if (!res.ok) {
+      throw new Error("サーバーエラー: " + res.status);
+    }
+    const data = await res.json();
+    console.log("Apps Script response:", data);
 
+    if (!data || !data.found) {
+      document.getElementById("msg").innerText = "該当する購入情報がありません。";
+      return;
+    }
 
+    const id = encodeURIComponent(data.id || "");
+    const exp = encodeURIComponent(data.exp || "");
+    console.log("Redirecting to card with id, exp:", id, exp);
 
+    window.location.href =
+      "https://ogafarm.github.io/ogafarm-pass/card.html?id=" + id + "&exp=" + exp;
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById("msg").innerText = "通信エラーが発生しました。コンソールを確認してください。";
+  }
 }
 </script>
+</body>
+</html>
