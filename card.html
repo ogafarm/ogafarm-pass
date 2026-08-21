@@ -1,1 +1,33 @@
+<div style="padding:20px; font-family:sans-serif;">
+  <h2>おおがファーム年間フリーパス 会員証</h2>
+
+  <p>会員番号：<span id="id"></span></p>
+  <p>有効期限：<span id="exp"></span></p>
+
+  <div id="qrcode" style="margin-top:20px;"></div>
+
+  <p style="margin-top:20px; font-size:14px; color:#555;">
+    ※受付でQRコードを提示してください
+  </p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+const exp = params.get("exp");
+
+document.getElementById("id").innerText = id;
+document.getElementById("exp").innerText = exp;
+
+// QRコードの中身（受付で読み取る）
+const qrData = JSON.stringify({ id: id, exp: exp });
+
+new QRCode(document.getElementById("qrcode"), {
+  text: qrData,
+  width: 180,
+  height: 180
+});
+</script>
 
